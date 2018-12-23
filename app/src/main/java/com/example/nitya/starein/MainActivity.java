@@ -32,6 +32,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,PermissionsListener {
 
@@ -208,6 +209,50 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
                     //Log.i("userlatlng",user.getLatLng().getLatitude()+" "+user.getLatLng().getLongitude());
 
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+            DatabaseReference otherUsers=FirebaseDatabase.getInstance().getReference("Users");
+
+            otherUsers.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    HashMap users=(HashMap) dataSnapshot.getValue();
+
+                    Set<String> keys=users.keySet();
+
+                    for (String key:keys){
+
+                        if (!key.equals(userId)) {
+
+                            otherUsers.child(key).child("latLng").addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                                    HashMap hm = (HashMap) dataSnapshot.getValue();
+
+                                    Double lat = (Double) hm.get("latitude");
+                                    Double lng = (Double) hm.get("longitude");
+
+
+                                    mapboxMap.addMarker(new MarkerOptions()
+                                            .position(new LatLng(lat, lng))
+                                            .title(key));
+
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    }
                 }
 
                 @Override

@@ -79,7 +79,7 @@ public class RegisterActivity extends AppCompatActivity {
                             String userId=firebaseUser.getUid();
 
                             reference=FirebaseDatabase.getInstance().getReference("Users").child(userId);
-                            LatLng latLng=new LatLng(0.1,0.1);
+                            LatLng latLng=new LatLng(25.3111, 82.9864);
 
                             Component component=new Component(userId,user,latLng);
 
@@ -87,10 +87,12 @@ public class RegisterActivity extends AppCompatActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
 
-                                    Intent intent=new Intent(RegisterActivity.this,MainActivity.class);
+                                    Toast.makeText(RegisterActivity.this, "Registered Successfully", Toast.LENGTH_SHORT).show();
+
+                                    /*Intent intent=new Intent(RegisterActivity.this,MainActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
-                                    finish();
+                                    finish();*/
                                 }
                             });
                         }
