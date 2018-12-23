@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import java.util.HashMap;
@@ -77,12 +79,11 @@ public class RegisterActivity extends AppCompatActivity {
                             String userId=firebaseUser.getUid();
 
                             reference=FirebaseDatabase.getInstance().getReference("Users").child(userId);
+                            LatLng latLng=new LatLng(0.1,0.1);
 
-                            HashMap<String ,String> hashMap=new HashMap<>();
-                            hashMap.put("id",userId);
-                            hashMap.put("username",user);
+                            Component component=new Component(userId,user,latLng);
 
-                            reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            reference.setValue(component).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
 

@@ -8,6 +8,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -23,9 +30,13 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,PermissionsListener {
+
+    FirebaseAuth auth;
+    DatabaseReference reference;
 
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -45,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .zoom(14)
                 .tilt(20)
                 .build();
+
+        auth=FirebaseAuth.getInstance();
 
         mapView.getMapAsync(this);
             /*@Override
@@ -165,6 +178,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.i("location",location.getLatitude()+"    "+location.getLongitude());
 
             LatLng latLng=new LatLng(location.getLatitude(),location.getLongitude());
+
+            FirebaseUser firebaseUser=auth.getCurrentUser();
+            String userId=firebaseUser.getUid();
+
+            reference=FirebaseDatabase.getInstance().getReference("Users").child(userId);
+
+            reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    HashMap user=(HashMap) dataSnapshot.getValue();
+                    Log.i("userid",user.get("userId").toString());
+                    Log.i("username",user.get("username").toString());
+
+                    reference.child("latLng").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            Log.i("userblaa",dataSnapshot.toString());
+
+                            reference.child("latLng").setValue(latLng);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                    //Log.i("userlatlng",user.getLatLng().getLatitude()+" "+user.getLatLng().getLongitude());
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
 
 
         }
