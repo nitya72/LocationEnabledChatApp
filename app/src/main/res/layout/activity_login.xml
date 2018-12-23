@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RegisterActivity">
+    tools:context=".LoginActivity">
 
     <include
         android:id="@+id/toolbar"
@@ -22,18 +22,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create A New User"
+            android:text="Login Here!"
             android:textStyle="bold"
             android:padding="5dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/username"
-            android:layout_margin="5dp"
-            app:met_floatingLabel="normal"
-            android:hint="Username"/>
 
         <com.rengwuxian.materialedittext.MaterialEditText
             android:layout_width="match_parent"
@@ -56,9 +48,9 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Register"
-            android:id="@+id/btnRegister"
-            android:layout_marginTop="5dp"
+            android:text="Login"
+            android:id="@+id/btnLogin"
+            android:layout_marginTop="15dp"
             android:textSize="15sp"
             android:background="@color/colorPrimary"/>
     </LinearLayout>
