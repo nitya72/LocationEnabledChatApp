@@ -17,7 +17,7 @@
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
         android:layout_gravity="top|center"
         android:textColor="#ffff"
-        android:layout_marginTop="100dp"/>
+        android:layout_marginTop="120dp"/>
 
     <Button
         android:id="@+id/btnLogin"
