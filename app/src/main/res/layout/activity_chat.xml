@@ -22,11 +22,6 @@
             android:theme="@style/Base.ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/MenuStyle">
 
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/user"/>
-
             <TextView
                 android:id="@+id/username"
                 android:layout_marginLeft="35dp"

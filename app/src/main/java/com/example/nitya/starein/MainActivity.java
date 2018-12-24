@@ -56,11 +56,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView=findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
 
-        CameraPosition position = new CameraPosition.Builder()
+        /*CameraPosition position = new CameraPosition.Builder()
                 .target(new LatLng(25.3254275, 83.0088737))
                 .zoom(14)
                 .tilt(20)
-                .build();
+                .build();*/
 
         auth=FirebaseAuth.getInstance();
 
