@@ -1,11 +1,14 @@
 package com.example.nitya.starein;
 
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,12 +21,16 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineListener;
+import com.mapbox.android.core.location.LocationEnginePriority;
+import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -46,14 +53,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MapView mapView;
     private MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
+    Location originLocation;
+    LocationEngine locationEngine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Mapbox.getInstance(this,"pk.eyJ1Ijoibml0eWFhcm9yYTcyIiwiYSI6ImNqcHpqeDdjYjAwenU0OG82MDBuZWxtdGIifQ.mMPtHap9shSb-WWzZFyPew");
+        Mapbox.getInstance(this, "pk.eyJ1Ijoibml0eWFhcm9yYTcyIiwiYSI6ImNqcHpqeDdjYjAwenU0OG82MDBuZWxtdGIifQ.mMPtHap9shSb-WWzZFyPew");
         setContentView(R.layout.activity_main);
 
-        mapView=findViewById(R.id.mapView);
+        mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
 
         /*CameraPosition position = new CameraPosition.Builder()
@@ -62,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .tilt(20)
                 .build();*/
 
-        auth=FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
 
         mapView.getMapAsync(this);
             /*@Override
@@ -84,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        permissionsManager.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
     }
 
@@ -135,18 +144,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
 
-        Toast.makeText(this,"Explanation needed",Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Explanation needed", Toast.LENGTH_LONG).show();
 
     }
 
     @Override
     public void onPermissionResult(boolean granted) {
 
-        if (granted){
+        if (granted) {
+            initializeLocationEngine();
             enableLocationComponent();
-        }
-        else{
-            Toast.makeText(this,"Permission Needed",Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Permission Needed", Toast.LENGTH_LONG).show();
             finish();
         }
 
@@ -154,56 +163,68 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        MainActivity.this.mapboxMap=mapboxMap;
-        enableLocationComponent();
+        MainActivity.this.mapboxMap = mapboxMap;
+        locationEnable();
 
+    }
+
+    void locationEnable() {
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            initializeLocationEngine();
+            enableLocationComponent();
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(this);
+        }
     }
 
 
     @SuppressWarnings({"MissingPermission"})
     private void enableLocationComponent() {
 
-        if (PermissionsManager.areLocationPermissionsGranted(this)){
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
 
 
-            LocationComponentOptions options=
-                    LocationComponentOptions.builder(this)
-                    .trackingGesturesManagement(true)
-                    .accuracyColor(Color.green(1))
-                    .build();
+            Location lastLocation = locationEngine.getLastLocation();
 
-            LocationComponent locationComponent=mapboxMap.getLocationComponent();
+            FirebaseUser firebaseUser = auth.getCurrentUser();
+            String userId = firebaseUser.getUid();
 
-            locationComponent.activateLocationComponent(this,options);
-
-            locationComponent.setLocationComponentEnabled(true);
-
-            locationComponent.setCameraMode(CameraMode.TRACKING);
-            locationComponent.setRenderMode(RenderMode.COMPASS);
-
-            Location location= locationComponent.getLastKnownLocation();
-            Log.i("location",location.getLatitude()+"    "+location.getLongitude());
-
-            LatLng latLng=new LatLng(location.getLatitude(),location.getLongitude());
-
-            FirebaseUser firebaseUser=auth.getCurrentUser();
-            String userId=firebaseUser.getUid();
-
-            reference=FirebaseDatabase.getInstance().getReference("Users").child(userId);
+            reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
 
             reference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                    HashMap user=(HashMap) dataSnapshot.getValue();
-                    Log.i("userid",user.get("userId").toString());
-                    Log.i("username",user.get("username").toString());
+                    HashMap user = (HashMap) dataSnapshot.getValue();
+                    Log.i("userid", user.get("userId").toString());
+                    Log.i("username", user.get("username").toString());
 
                     reference.child("latLng").addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                            Log.i("userblaa",dataSnapshot.toString());
+                            Log.i("userblaa", dataSnapshot.toString());
+                            if(lastLocation!=null){
+                                originLocation=lastLocation;
+                            }
+                            Log.i("Location",String.valueOf(originLocation.getLatitude())+originLocation.getLongitude());
+
+
+                            LatLng latLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+
+                            IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
+                            Bitmap iconDrawable = BitmapFactory.decodeResource(getResources(),R.drawable.marker);
+                            iconDrawable=Bitmap.createScaledBitmap(iconDrawable, 70, 70, true);
+                            com.mapbox.mapboxsdk.annotations.Icon icon=iconFactory.fromBitmap(iconDrawable);
+
+                            mapboxMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(originLocation.getLatitude(), originLocation.getLongitude()))
+                                    .setIcon(icon)
+                                    );
+
+                            mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(originLocation.getLatitude(), originLocation.getLongitude()), 12));
 
                             reference.child("latLng").setValue(latLng);
                         }
@@ -223,16 +244,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-            DatabaseReference otherUsers=FirebaseDatabase.getInstance().getReference("Users");
+            DatabaseReference otherUsers = FirebaseDatabase.getInstance().getReference("Users");
 
             otherUsers.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    HashMap users=(HashMap) dataSnapshot.getValue();
+                    HashMap users = (HashMap) dataSnapshot.getValue();
 
-                    Set<String> keys=users.keySet();
+                    Set<String> keys = users.keySet();
 
-                    for (String key:keys){
+                    for (String key : keys) {
 
                         if (!key.equals(userId)) {
 
@@ -242,13 +263,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                     HashMap hm = (HashMap) dataSnapshot.getValue();
 
-                                    Double lat = (Double) hm.get("latitude");
-                                    Double lng = (Double) hm.get("longitude");
+                                    String lat = String.valueOf( hm.get("latitude"));
+                                    String lng = String.valueOf( hm.get("longitude"));
+                                    if(distance(Double.valueOf(lat),Double.valueOf(lng),originLocation.getLatitude(),originLocation.getLongitude())<=5) {
 
 
-                                    mapboxMap.addMarker(new MarkerOptions()
-                                            .position(new LatLng(lat, lng))
-                                            .title(key));
+                                        mapboxMap.addMarker(new MarkerOptions()
+                                                .position(new LatLng(Double.valueOf(lat), Double.valueOf(lng)))
+                                                .title(key));
+                                    }
+
+
 
                                 }
 
@@ -274,9 +299,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // Show a toast with the title of the selected marker
                     //Toast.makeText(MainActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
 
-                    Intent intent=new Intent(MainActivity.this,ChatActivity.class);
-                    intent.putExtra("me",userId);
-                    intent.putExtra("other",marker.getTitle());
+                    Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+                    intent.putExtra("me", userId);
+                    intent.putExtra("other", marker.getTitle());
                     startActivity(intent);
 
 
@@ -286,13 +311,57 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             });
 
-        }
-        else {
+        } else {
 
-            permissionsManager=new PermissionsManager(this);
+            permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
         }
     }
 
+    @SuppressWarnings({"MissingPermission"})
+    private void initializeLocationEngine() {
+        locationEngine = new LocationEngineProvider(this).obtainBestLocationEngineAvailable();
+        locationEngine.setPriority(LocationEnginePriority.BALANCED_POWER_ACCURACY);
+        locationEngine.addLocationEngineListener(new LocationEngineListener() {
 
+            @Override
+            public void onConnected() {
+                locationEngine.requestLocationUpdates();
+            }
+
+            @Override
+            public void onLocationChanged(Location location) {
+                originLocation = location;
+                Log.i("Location",String.valueOf(location.getLatitude())+location.getLongitude());
+                //if (!mCameraPositionSet) {
+                  //  setCameraPosition(location);
+                  //  mCameraPositionSet = true;
+          //  }
+
+        }
+    });
+
+        locationEngine.activate();
+    }
+
+    private double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1))
+                * Math.sin(deg2rad(lat2))
+                + Math.cos(deg2rad(lat1))
+                * Math.cos(deg2rad(lat2))
+                * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        return (dist);
+    }
+
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
+    }
 }

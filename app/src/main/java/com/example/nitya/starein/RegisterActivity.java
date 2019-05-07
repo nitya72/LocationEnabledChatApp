@@ -97,7 +97,7 @@ public class RegisterActivity extends AppCompatActivity {
                             });
                         }
                         else{
-                            Toast.makeText(RegisterActivity.this,"Username or email already exist",Toast.LENGTH_LONG).show();
+                            Toast.makeText(RegisterActivity.this,String.valueOf(task.getException()),Toast.LENGTH_LONG).show();
                         }
                     }
                 });
