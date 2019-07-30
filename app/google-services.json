@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:322100430024:android:1c22b172bad5c508",
         "android_client_info": {
-          "package_name": "com.example.nitya.myapplication"
+          "package_name": "com.cellfishpool.app.powwow"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "322100430024-g9hnte9v5uvdi1ujja3gtc1an0otq536.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.nitya.myapplication",
+            "package_name": "com.cellfishpool.app.powwow",
             "certificate_hash": "6044194bf9e9efede48cce103c094c69917be006"
           }
         },
@@ -54,7 +54,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:322100430024:android:f6f3392afc56299a",
         "android_client_info": {
-          "package_name": "com.example.nitya.starein"
+          "package_name": "com.cellfishpool.app.powwow"
         }
       },
       "oauth_client": [
@@ -62,7 +62,7 @@
           "client_id": "322100430024-ho5cfkqjk9420j64udol6fuh189sp3tv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.nitya.starein",
+            "package_name": "com.cellfishpool.app.powwow",
             "certificate_hash": "6044194bf9e9efede48cce103c094c69917be006"
           }
         },
