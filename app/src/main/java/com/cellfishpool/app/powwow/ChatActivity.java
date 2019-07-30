@@ -65,8 +65,8 @@ public class ChatActivity extends AppCompatActivity {
                 Toolbar toolbar=findViewById(R.id.toolbar);
                 setSupportActionBar(toolbar);
                 getSupportActionBar().setTitle(name);
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+                //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                //getSupportActionBar().
                 readMessage(me,other);
 
             }
@@ -149,29 +149,5 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
